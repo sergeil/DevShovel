@@ -1,0 +1,8 @@
+
+Steps to put things working:
+
+1) Add maven repo to the settings.xml (described in modera confluence)
+2) Right-click on src folder->maven->Enable dep. management
+3) Download swt project from http://www.eclipse.org/swt/ and import it to the workspace
+4) Add swt project as dependency
+5) Alt-Shift-X + G
