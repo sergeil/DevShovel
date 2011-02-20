@@ -1,6 +1,7 @@
 package net.modera.shovel.graph;
 
 
+import org.eclipse.swt.widgets.Shell;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,7 @@ public class ResourceTravelerProjectionTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		projection = new ResourceTravelerProjection();
+		projection = new ResourceTravelerProjection(mock(Shell.class));
 	}
 
 	@After

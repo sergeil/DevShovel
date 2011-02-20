@@ -110,7 +110,7 @@ public class ResourceTraveler {
 		List<Connection> connections = new ArrayList<Connection>();
 		
 		for (ResourceProvider provider : getConnectionProviders()) {
-			connections.addAll(provider.getConnectionsForResource(getCurrentResource()));
+			connections.addAll(provider.getResourceConnections(getCurrentResource()));
 		}
 		
 		return connections;

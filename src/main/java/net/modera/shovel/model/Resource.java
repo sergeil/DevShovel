@@ -1,8 +1,14 @@
 package net.modera.shovel.model;
 
-public class Resource {
+import java.util.List;
+
+public abstract class Resource {
 	
 	private String displayName;
+	
+	private List<Connection> connections;
+	
+	public abstract String getResourceKey();
 	
 	public Resource(String displayName) {
 		this.displayName = displayName;
@@ -14,5 +20,17 @@ public class Resource {
 
 	public String getDisplayName() {
 		return displayName;
+	}
+	
+	public void addConnection(Connection connection) {
+		connections.add(connection);
+	}
+
+	public void setConnections(List<Connection> connections) {
+		this.connections = connections;
+	}
+
+	public List<Connection> getConnections() {
+		return connections;
 	}
 }

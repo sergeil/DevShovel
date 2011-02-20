@@ -4,18 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.modera.shovel.graph.ResourceTravelerProjection;
-import net.modera.shovel.provider.SimpleProvider;
+import net.modera.shovel.provider.LucineProvider;
 import net.modera.shovel.traveler.ResourceProvider;
 import net.modera.shovel.traveler.ResourceTraveler;
 
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 
 public class App {
 	
 	public static void main(String[] args) {
+		
+		ApplicationContext context =
+		    new ClassPathXmlApplicationContext(new String[] {"context.xml"});
 		
 		final Display d = new Display();
 		Shell shell = new Shell(d);
@@ -27,22 +32,27 @@ public class App {
 		// bussines
 		ResourceTraveler traveler = new ResourceTraveler();
 		List<ResourceProvider> providers = new ArrayList<ResourceProvider>();
-		providers.add(new SimpleProvider());
+		providers.add(new LucineProvider());
 		traveler.setConnectionProviders(providers);
 		
 		ResourceTravelerProjection projection = new ResourceTravelerProjection(shell);
 		projection.setTraveler(traveler);
 		
 		traveler.addListener(projection);
-		traveler.beginWithResource(providers.get(0).findResources(null).get(0));
+		
+		System.out.println(providers.get(0).getResources("lucine"));
+		
+		return;
+		
+		//traveler.beginWithResource(providers.get(0).findResources("lucine").get(0));
 		
 		// clean up
-		shell.open();
-		while (!shell.isDisposed()) {
-			while (!d.readAndDispatch()) {
-				d.sleep();
-			}
-		}
+//		shell.open();
+//		while (!shell.isDisposed()) {
+//			while (!d.readAndDispatch()) {
+//				d.sleep();
+//			}
+//		}
 		
 		
 		

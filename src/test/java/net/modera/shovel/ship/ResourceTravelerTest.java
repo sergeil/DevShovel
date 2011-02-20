@@ -44,7 +44,7 @@ public class ResourceTravelerTest {
 		
 		List<Connection> connections = new ArrayList<Connection>();
 		connections.add(con);
-		when(mockProvider.getConnectionsForResource(res)).thenReturn(connections);
+		when(mockProvider.getResourceConnections(res)).thenReturn(connections);
 	}
 
 	@After
@@ -68,13 +68,13 @@ public class ResourceTravelerTest {
 		List<Connection> connList1 = new ArrayList<Connection>();
 		connList1.add(con1);
 		ResourceProvider provider1 = mock(ResourceProvider.class);
-		when(provider1.getConnectionsForResource(myRes)).thenReturn(connList1);
+		when(provider1.getResourceConnections(myRes)).thenReturn(connList1);
 		
 		Connection con2 = mock(Connection.class);
 		List<Connection> connList2 = new ArrayList<Connection>();
 		connList2.add(con2);
 		ResourceProvider provider2 = mock(ResourceProvider.class);
-		when(provider2.getConnectionsForResource(myRes)).thenReturn(connList2);
+		when(provider2.getResourceConnections(myRes)).thenReturn(connList2);
 		
 		List<ResourceProvider> providers 
 			= new ArrayList<ResourceProvider>();
