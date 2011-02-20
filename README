@@ -1,8 +1,17 @@
 
-Steps to put things working:
+How to get started
 
 1) Add maven repo to the settings.xml (described in modera confluence)
 2) Right-click on src folder->maven->Enable dep. management
 3) Download swt project from http://www.eclipse.org/swt/ and import it to the workspace
 4) Add swt project as dependency
-5) Alt-Shift-X + G
+5) Run as a Java project
+
+How do I create a plugin ?
+
+The easiest way to create a plugin is to implement the net.modera.shovel.resourceproviders.DiscoverableResourceProvider
+interface and place it to your class-path, currently your class must resided in
+net.modera.shovel.resourceprovider so the shovel would able to discover it. Also, 
+do not forget to annotate your implementation with the org.springframework.stereotype.Component 
+annotation because the Spring Autowiring facilities are used to load plugins dynamically.
+

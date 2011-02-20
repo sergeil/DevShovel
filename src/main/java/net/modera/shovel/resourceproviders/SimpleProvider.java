@@ -1,4 +1,4 @@
-package net.modera.shovel.provider;
+package net.modera.shovel.resourceproviders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,10 +6,11 @@ import java.util.List;
 import net.modera.shovel.model.Connection;
 import net.modera.shovel.model.Resource;
 import net.modera.shovel.traveler.ResourceFindCriteria;
-import net.modera.shovel.traveler.ResourceProvider;
 
-public class SimpleProvider implements ResourceProvider {
+import org.springframework.stereotype.Component;
 
+@Component
+public class SimpleProvider implements DiscoverableResourceProvider {
 	List<Resource> resources;
 	
 	public SimpleProvider() {

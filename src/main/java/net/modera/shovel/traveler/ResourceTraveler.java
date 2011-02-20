@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.modera.shovel.model.Connection;
 import net.modera.shovel.model.Resource;
+import net.modera.shovel.resourceproviders.ResourceProvider;
 
 public class ResourceTraveler {
 	
