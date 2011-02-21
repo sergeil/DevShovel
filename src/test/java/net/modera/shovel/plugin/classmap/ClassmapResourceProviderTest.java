@@ -1,10 +1,9 @@
-package net.modera.shovel.provider;
+package net.modera.shovel.plugin.classmap;
 
 import java.io.File;
 import java.util.List;
 
 import net.modera.shovel.model.Resource;
-import net.modera.shovel.plugin.classmap.ClassmapResourceProvider;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
