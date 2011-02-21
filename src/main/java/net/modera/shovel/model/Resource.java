@@ -2,13 +2,18 @@ package net.modera.shovel.model;
 
 import java.util.List;
 
-public abstract class Resource {
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+
+public class Resource {
 	
 	private String displayName;
 	
 	private List<Connection> connections;
 	
-	public abstract String getResourceKey();
+	public String getResourceKey() {
+		return "generic";
+	}
 	
 	public Resource(String displayName) {
 		this.displayName = displayName;
@@ -32,5 +37,13 @@ public abstract class Resource {
 
 	public List<Connection> getConnections() {
 		return connections;
+	}
+	
+	public void buildDocument(Document doc) {
+		doc.add(new Field("name", getDisplayName(), Field.Store.YES, Field.Index.ANALYZED));
+	}
+	
+	public Resource(Document doc) {
+		displayName = doc.get("name");
 	}
 }

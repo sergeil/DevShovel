@@ -112,10 +112,4 @@ public class LucineProvider implements ResourceProvider {
 		return connections;
 	}
 
-	private void addDoc(IndexWriter w, String value) throws IOException {
-		Document doc = new Document();
-		doc.add(new Field("title", value, Field.Store.YES, Field.Index.ANALYZED));
-		w.addDocument(doc);
-	}
-
 }

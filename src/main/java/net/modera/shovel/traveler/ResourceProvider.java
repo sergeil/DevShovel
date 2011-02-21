@@ -8,5 +8,5 @@ public interface ResourceProvider {
 	
 	public List<Resource> getResources();
 	
-	public List<Connection> getResourceConnections(Resource resource); 
+	public List<Connection> getResourceConnections(Resource resource);
 }
