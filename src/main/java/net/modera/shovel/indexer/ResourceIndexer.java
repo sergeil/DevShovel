@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -19,11 +20,15 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+import org.springframework.stereotype.Component;
 
 import net.modera.shovel.model.Resource;
 
+@Component
 public class ResourceIndexer {
 
+	static Logger logger = Logger.getLogger(ResourceIndexer.class);
+	
 	private Directory index;
 	private Analyzer analyzer;
 	
@@ -34,6 +39,10 @@ public class ResourceIndexer {
 	public List<Resource> search(String queryString) throws ParseException {
         
 		List<Resource> resources = new ArrayList<Resource>();
+		
+		if (queryString == "") {
+			return resources;
+		}
         
 		try {
 			IndexSearcher isearcher = new IndexSearcher(index);
@@ -44,7 +53,7 @@ public class ResourceIndexer {
 
 	        TopScoreDocCollector collector = TopScoreDocCollector.create(10, true);
 	        isearcher.search(query, collector);
-
+	        
 //	        System.out.println("collector.getTotalHits()=" + collector.getTotalHits());
 //	        assertEquals(2, collector.getTotalHits());
 
@@ -78,6 +87,9 @@ public class ResourceIndexer {
 	
 	public void index(List<Resource> resources) {
 		IndexWriter w;
+		
+		logger.info("Starting index rebuild.");
+		
 		try {
 			w = new IndexWriter(index, getAnalyzer(), true,
 					IndexWriter.MaxFieldLength.UNLIMITED);
@@ -86,18 +98,19 @@ public class ResourceIndexer {
 				Document doc = new Document();
 				resource.buildDocument(doc);
 				w.addDocument(doc);
+				
+				logger.debug("New document: " + doc);
 			}
 			w.close();
+			
+			logger.info("Index rebuild completed. Total resources indexed: " + resources.size());
 
 		} catch (CorruptIndexException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Index corrupt", e);
 		} catch (LockObtainFailedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Can not lock index file", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Problem while writing index", e);
 		}
 	}
 }

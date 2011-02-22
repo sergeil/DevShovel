@@ -1,5 +1,6 @@
 package net.modera.shovel.traveler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +27,23 @@ public class AggregatingResourceProvider implements ResourceProvider {
 	
 	public List<Resource> getResources() {
 		
+		List<Resource> resources = new ArrayList<Resource>();
 		
+		for (ResourceProvider provider : providers) {
+			resources.addAll(provider.getResources());
+		}
 		
-		return null;
+		return resources;
 	}
 
 	public List<Connection> getResourceConnections(Resource resource) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		List<Connection> connections = new ArrayList<Connection>();
+		
+		for (ResourceProvider provider : providers) {
+			connections.addAll(provider.getResourceConnections(resource));
+		}
+		
+		return connections;
 	}
 }

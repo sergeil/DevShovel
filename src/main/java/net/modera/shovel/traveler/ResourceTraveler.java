@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.Stack;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 import net.modera.shovel.model.Connection;
 import net.modera.shovel.model.Resource;
 
+@Component("traveler")
 public class ResourceTraveler {
 	
 	private Stack<Resource> history;

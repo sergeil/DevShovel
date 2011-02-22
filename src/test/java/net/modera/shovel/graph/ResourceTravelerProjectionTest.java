@@ -9,17 +9,16 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 
 import net.modera.shovel.traveler.ResourceTraveler;
-import net.modera.shovel.model.*;
 
 import static org.junit.Assert.*;
 
 public class ResourceTravelerProjectionTest {
 
-	ResourceTravelerProjection projection;
+	ResourceGraphProjection projection;
 	
 	@Before
 	public void setUp() throws Exception {
-		projection = new ResourceTravelerProjection(mock(Shell.class));
+		projection = new ResourceGraphProjection(mock(Shell.class));
 	}
 
 	@After
