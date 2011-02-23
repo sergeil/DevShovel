@@ -51,7 +51,7 @@ public class ResourceIndexer {
 	        QueryParser parser = new QueryParser(Version.LUCENE_30, "name", analyzer);
 	        Query query = parser.parse(queryString);
 
-	        TopScoreDocCollector collector = TopScoreDocCollector.create(10, true);
+	        TopScoreDocCollector collector = TopScoreDocCollector.create(100, true);
 	        isearcher.search(query, collector);
 	        
 //	        System.out.println("collector.getTotalHits()=" + collector.getTotalHits());

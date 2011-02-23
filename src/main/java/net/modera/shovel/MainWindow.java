@@ -3,7 +3,6 @@ package net.modera.shovel;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.modera.shovel.graph.ResourceGraphProjection;
 import net.modera.shovel.graph.ResourceRenderer;
 import net.modera.shovel.indexer.ResourceIndexer;
 import net.modera.shovel.model.Connection;
@@ -14,6 +13,8 @@ import net.modera.shovel.traveler.ResourceTraveler;
 import org.apache.log4j.Logger;
 import org.apache.lucene.queryParser.ParseException;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -49,7 +50,6 @@ public class MainWindow implements AutoCompleteProvider {
 
 	protected Display display;
 	protected ResourceTraveler traveler;
-	protected ResourceGraphProjection graphProjection;
 
 	protected Text queryTextField;
 
@@ -68,6 +68,8 @@ public class MainWindow implements AutoCompleteProvider {
 		indexer.index(resourceProvider.getResources());
 
 		shell.open();
+		
+		queryTextField.setFocus();
 
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch())
@@ -84,19 +86,19 @@ public class MainWindow implements AutoCompleteProvider {
 		}
 	}
 
-	private void clearGraph(Graph g) {
+	private void clearGraph() {
 
 		// remove all the connections
 
 		graph.setSelection(null);
 
-		Object[] objects = g.getConnections().toArray();
+		Object[] objects = graph.getConnections().toArray();
 
 		for (Object connection : objects) {
 			((GraphConnection) connection).dispose();
 		}
 
-		objects = g.getNodes().toArray();
+		objects = graph.getNodes().toArray();
 		for (Object node : objects) {
 			((GraphNode) node).dispose();
 		}
@@ -131,7 +133,7 @@ public class MainWindow implements AutoCompleteProvider {
 
 		logger.info("redrawing graph");
 
-		//clearGraph(graph);
+		//clearGraph();
 //
 //		if (traveler.getCurrentResource() != null) {
 //			logger.info("Rendering graph for a resource");
@@ -145,7 +147,7 @@ public class MainWindow implements AutoCompleteProvider {
 	}
 	
 	public void setResourceName(String name) {
-		clearGraph(graph);
+		clearGraph();
 		renderResourceGraph(new Resource(name));
 		redraw();
 	}
@@ -156,17 +158,22 @@ public class MainWindow implements AutoCompleteProvider {
 		}
 	}
 
-	public void renderResourceGraph(Resource resource) {
-
-		GraphNode currentNode = renderResource(graph, resource);
-
+	public void renderResourceConnections(Resource resource, GraphNode resourceNode) {
+		
 		for (Connection connection : resourceProvider
 				.getResourceConnections(resource)) {
 
 			GraphNode node = renderResource(graph,
 					connection.getTargetResource());
-			new GraphConnection(graph, SWT.NONE, currentNode, node);
+			new GraphConnection(graph, SWT.NONE, resourceNode, node);
 		}
+	}
+	
+	public void renderResourceGraph(Resource resource) {
+
+		GraphNode currentNode = renderResource(graph, resource);
+		
+		renderResourceConnections(resource, currentNode);
 	}
 
 	/**
@@ -195,23 +202,135 @@ public class MainWindow implements AutoCompleteProvider {
 	}
 
 	@Autowired
-	public MainWindow(Display display, ResourceTraveler traveler,
-			ResourceGraphProjection graphProjection) {
-
+	public MainWindow(Display display, ResourceTraveler traveler) {
+		
 		this.traveler = traveler;
 		this.display = display;
-		this.graphProjection = graphProjection;
 
 		shell = new Shell(display);
 		shell.setText("Graph Snippet 5");
 		shell.setMaximized(true);
 		shell.setLayout(new FillLayout());
 
-		traveler.addListener(graphProjection);
-
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 3;
 		shell.setLayout(gridLayout);
+		
+		createTollbar(shell);
+		createQueryBar(shell);
+		createGraph(shell);
+		createStatusBar(shell);
+		createProgressBar(shell);
+	}
+	
+	public void createGraph(Shell shell) {
+		
+		GridData data = new GridData();
+		data.horizontalAlignment = GridData.FILL;
+		data.verticalAlignment = GridData.FILL;
+		data.horizontalSpan = 3;
+		data.grabExcessHorizontalSpace = true;
+		data.grabExcessVerticalSpace = true;
+
+		graph = new Graph(shell, SWT.NONE);
+		
+		graph.setConnectionStyle(ZestStyles.CONNECTIONS_DIRECTED);
+		graph.setLayoutData(data);
+		
+		graph.addSelectionListener(new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				System.out.println(((Graph) e.widget).getSelection());
+				@SuppressWarnings("unchecked")
+				List<GraphNode> nodes = (List<GraphNode>)((Graph) e.widget).getSelection();
+				if(nodes.size() > 0) {
+					GraphNode selectedNode = nodes.get(0);
+					
+					Object[] objects = graph.getConnections().toArray();
+	
+					for (Object connection : objects) {
+						((GraphConnection) connection).dispose();
+					}
+	
+					objects = graph.getNodes().toArray();
+					for (Object node : objects) {
+						if (selectedNode != node) {
+							((GraphNode) node).dispose();
+						}
+					}
+					
+					renderResourceConnections(new Resource(nodes.get(0).getText()), selectedNode);
+					
+					graph.setLayoutAlgorithm( new RadialLayoutAlgorithm(
+							LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
+				}
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+	}
+	
+	public void createStatusBar(Shell shell) {
+		final Label status = new Label(shell, SWT.NONE);
+		GridData data = new GridData(GridData.FILL_HORIZONTAL);
+		data.horizontalSpan = 2;
+		status.setLayoutData(data);
+	}
+	
+	public void createProgressBar(Shell shell) {
+		final ProgressBar progressBar = new ProgressBar(shell, SWT.NONE);
+		GridData data = new GridData();
+		data.horizontalAlignment = GridData.END;
+		progressBar.setLayoutData(data);
+	}
+	
+	public void createQueryBar(Shell shell) {
+		
+		GridData data;
+		
+		Label labelAddress = new Label(shell, SWT.NONE);
+		labelAddress.setText("Address");
+
+		final Text queryField = new Text(shell, SWT.BORDER);
+		data = new GridData();
+		data.horizontalAlignment = GridData.FILL;
+		data.horizontalSpan = 2;
+		data.grabExcessHorizontalSpace = true;
+		queryField.setEchoChar('\0');
+		queryField.setLayoutData(data);
+		
+		queryField.addKeyListener(new KeyListener(){
+            public void keyPressed(KeyEvent e) {}
+            public void keyReleased(KeyEvent e) {
+            	if (e.keyCode == SWT.ESC){
+            		queryField.setText("");
+            		clearGraph();
+            	}
+            }}
+        );
+		
+		queryField.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				//redraw();
+			}
+		});
+		
+		AutoComplete ac = new AutoComplete(queryField, AutoComplete.RESIZE, this);
+		ac.setVisibleItemCount(40);
+		ac.addListener(new AutoCompleteListener() {
+			
+			public void onSelect(String selectedVariant) {
+				setResourceName(selectedVariant);
+			}
+		});
+		queryTextField = queryField;
+		
+	}
+	public void createTollbar(Shell shell) {
+		
 		ToolBar toolbar = new ToolBar(shell, SWT.NONE);
 		ToolItem itemBack = new ToolItem(toolbar, SWT.PUSH);
 		itemBack.setText("Back");
@@ -227,70 +346,7 @@ public class MainWindow implements AutoCompleteProvider {
 		GridData data = new GridData();
 		data.horizontalSpan = 3;
 		toolbar.setLayoutData(data);
-
-		Label labelAddress = new Label(shell, SWT.NONE);
-		labelAddress.setText("Address");
-
-		final Text location = new Text(shell, SWT.BORDER);
-		data = new GridData();
-		data.horizontalAlignment = GridData.FILL;
-		data.horizontalSpan = 2;
-		data.grabExcessHorizontalSpace = true;
-		location.setEchoChar('\0');
-		location.setLayoutData(data);
-		AutoComplete ac = new AutoComplete(location, AutoComplete.RESIZE, this);
-		ac.addListener(new AutoCompleteListener() {
-			
-			public void onSelect(String selectedVariant) {
-				setResourceName(selectedVariant);
-			}
-		});
-		queryTextField = location;
-
-		data = new GridData();
-		data.horizontalAlignment = GridData.FILL;
-		data.verticalAlignment = GridData.FILL;
-		data.horizontalSpan = 3;
-		data.grabExcessHorizontalSpace = true;
-		data.grabExcessVerticalSpace = true;
-
-		graph = new Graph(shell, SWT.NONE);
-		graph.setConnectionStyle(ZestStyles.CONNECTIONS_DIRECTED);
-		graph.setLayoutData(data);
-
-		// browser.setLayoutData(data);
-
-		final Label status = new Label(shell, SWT.NONE);
-		data = new GridData(GridData.FILL_HORIZONTAL);
-		data.horizontalSpan = 2;
-		status.setLayoutData(data);
-
-		final ProgressBar progressBar = new ProgressBar(shell, SWT.NONE);
-		data = new GridData();
-		data.horizontalAlignment = GridData.END;
-		progressBar.setLayoutData(data);
-
-		location.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				//redraw();
-			}
-		});
 		
-		graph.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				System.out.println(((Graph) e.widget).getSelection());
-				@SuppressWarnings("unchecked")
-				List<GraphNode> nodes = (List<GraphNode>)((Graph) e.widget).getSelection(); 
-				setResourceName(nodes.get(0).getText());
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
-
 		// /* event handling */
 		// Listener listener = new Listener() {
 		// public void handleEvent(Event event) {

@@ -1,7 +1,6 @@
 package net.modera.shovel;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
@@ -32,13 +31,8 @@ import org.eclipse.swt.widgets.Text;
  * widget.  AutoComplete is very straight-forward and can be 
  * added to any Text widget with very few lines of code.  For 
  * example:
- * <p>
- * <code>
- * Text text = new Text(parent,SWT.BORDER);<BR>
- * <BR>
- * AutoComplete autoComplete = new AutoComplete(text);<BR>
- * autoComplete.setValues(new String[]{"value 1","value 2"});<BR>
- * </code>
+ * Text text = new Text(parent,SWT.BORDER);
+ * AutoComplete autoComplete = new AutoComplete(text);
  */
 public class AutoComplete {
 	
@@ -56,6 +50,8 @@ public class AutoComplete {
 	private ControlListener parentShellControlListener;
 	private ShellListener parentShellShellListener;
 	private Listener mouseDownFilter;
+	
+	private AutoCompleteProvider provider;
 	
 	private boolean canReturnFocusOnMouseDown = true;
 	
@@ -99,7 +95,7 @@ public class AutoComplete {
 	public AutoComplete(final Text owner,int style,final AutoCompleteProvider provider){
 		this.owner = owner;
 		this.ownerShell = owner.getShell();
-		//this.provider = provider;
+		this.provider = provider;
 		
 		if ((style & RESIZE) == RESIZE)
             resize = true;
@@ -112,22 +108,13 @@ public class AutoComplete {
 		
 		owner.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-//				if (owner.getText().equals("")){
-//					hide();
-//					return;
-//				}
-//				if (!ignoreModification){
-//					String[] displayVals = provider.getValues(values, owner.getText());
-//					if (displayVals == null || displayVals.length == 0){
-//						hide();
-//					} else {
-//						if (list == null)
-//							create();
-//						
-//						list.setItems(displayVals);
-//						show();
-//					}
-//				}
+				if (owner.getText().equals("")){
+					hide();
+					return;
+				}
+				if (!ignoreModification){
+					updateCompletionList();
+				}
 			}		
 		});
 		
@@ -143,14 +130,21 @@ public class AutoComplete {
 	            		return;
 	            	}
 	            	if (e.character == '\r' || e.keyCode == SWT.ESC){
+	            		hide();
+	            		
 	            		if (e.character == '\r') {
-	            			if (listeners.size() > 0) {
-	            				for(AutoCompleteListener listener : listeners) {
-	            					listener.onSelect(list.getSelection()[0]);
-	            				}
+	            			
+	            			if (list.getSelection().length > 0) {
+	            				
+	            				setText(list.getSelection()[0]);
+	            				
+	            				if (listeners.size() > 0) {
+		            				for(AutoCompleteListener listener : listeners) {
+		            					listener.onSelect(list.getSelection()[0]);
+		            				}
+		            			}
 	            			}
 	            		}
-	            		hide();
 	            		return;
 	            	}
             	}
@@ -173,18 +167,7 @@ public class AutoComplete {
 					return;
 				}
 				if (!ignoreModification){
-					String[] displayVals = 
-						(String[]) provider.getAutoCompleteValues(owner.getText()).toArray(new String[]{});
-					
-					if (displayVals == null || displayVals.length == 0){
-						hide();
-					} else {
-						if (list == null)
-							create();
-						
-						list.setItems(displayVals);
-						show();
-					}
+					updateCompletionList();
 				}
             }}
         );
@@ -196,6 +179,22 @@ public class AutoComplete {
 				}
 			}}
         );
+	}
+	
+	private void updateCompletionList() {
+		
+		String[] displayVals = 
+			(String[]) provider.getAutoCompleteValues(owner.getText()).toArray(new String[]{});
+		
+		if (displayVals == null || displayVals.length == 0){
+			hide();
+		} else {
+			if (list == null) {
+				create();
+			}
+			list.setItems(displayVals);
+			show();
+		}
 	}
 	
 	private void create(){
@@ -431,8 +430,8 @@ public class AutoComplete {
 			return;
 		list.setSelection(sel -1);
 		list.showSelection();
-		if (list.getSelection().length > 0)
-			setText(list.getSelection()[0]);
+//		if (list.getSelection().length > 0)
+//			setText(list.getSelection()[0]);
 	}
 
 	private void keyDown() {
@@ -447,9 +446,9 @@ public class AutoComplete {
 			return;
 		}
 		list.showSelection();
-		if (list.getSelection().length > 0) {
-			setText(list.getSelection()[0]);
-		}
+//		if (list.getSelection().length > 0) {
+//			setText(list.getSelection()[0]);
+//		}
 	}
 	
 	private void scroll(int linesToScroll){
